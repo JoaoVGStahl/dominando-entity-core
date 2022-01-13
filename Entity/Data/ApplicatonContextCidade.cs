@@ -5,11 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Entity.Data
 {
-    public class ApplicatonContext : DbContext
+    public class ApplicatonContextCidade : DbContext
     {
-        public DbSet<Departamento> Departamentos { get; set; }
-
-        public DbSet<Funcionario> Funcionarios { get; set; }
+        public DbSet<Cidade> Cidades { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
