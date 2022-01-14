@@ -13,12 +13,16 @@ namespace Entity.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            const string strConnection = "Data Source=DESKTOP-LD0IN04\\DELLSERVER; Initial Catalog=Entity002; User Id=sa;Password=@jr120401;pooling=true;";
+            const string strConnection = "Data Source=DESKTOP-LD0IN04\\DELLSERVER; Initial Catalog=PontoSys-02; User Id=sa;Password=@jr120401;pooling=true;";
             optionsBuilder
-            .UseSqlServer(strConnection)
+            .UseSqlServer(strConnection, p => p.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
             .EnableSensitiveDataLogging()
-            //.UseLazyLoadingProxies()
             .LogTo(Console.WriteLine, LogLevel.Information);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {   
+            //modelBuilder.Entity<Departamento>().HasQueryFilter( p => !p.Excluido);
         }
     }
 }

@@ -10,6 +10,8 @@ namespace Entity.domain
 
         public string RG { get; set; }
 
+        public bool Excluido { get; set; }
+
         public int DepartamentoId { get; set; }
 
         public Departamento Departamento { get; set; }
