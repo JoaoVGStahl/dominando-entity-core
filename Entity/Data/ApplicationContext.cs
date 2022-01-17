@@ -14,6 +14,8 @@ namespace Entity.Data
 
         public DbSet<Funcionario> Funcionarios { get; set; }
 
+        public DbSet<Estado> Estados { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             const string strConnection = "Data Source=DESKTOP-LD0IN04\\DELLSERVER; Initial Catalog=PontoSys-02; User Id=sa;Password=@jr120401;pooling=true;";
@@ -76,15 +78,26 @@ namespace Entity.Data
             modelBuilder.Entity<Departamento>().Property(p => p.Id).HasDefaultValueSql("NEXT VALUE FOR sequencias.MinhaSequencia");
             */
 
-            // ? Criação de Indices e Indices Compostos
+            /*
+             ? Criação de Indices e Indices Compostos
             modelBuilder
                 .Entity<Departamento>()
                 .HasIndex(p => new {p.Descricao, p.Ativo})
                 .HasDatabaseName("idx_meu_indice_composto")
                 .HasFilter("Descricao IS NOT NULL")
-                // ? Definir Fator de Preenchimento usado para ajustar o armazentamento e o desempennho dos indices / Irá deixar 20% da folha para beneficio proprio
+                 ? Definir Fator de Preenchimento usado para ajustar o armazentamento e o desempennho dos indices / Irá deixar 20% da folha para beneficio proprio
                 .HasFillFactor(80) 
                 .IsUnique(); // ! Evita que o indice seja duplicado
+
+            */
+
+            // ? Propagação de dados => Utilizado para informações que não serão alteradas com frequência
+            modelBuilder
+                .Entity<Estado>()
+                .HasData(new[]{
+                    new Estado { Id = 1, Nome = "São Paulo"},
+                    new Estado {Id= 2, Nome = "Rio De Janeiro"}
+                });
         }
 
         // ? Flush StreamWriter
