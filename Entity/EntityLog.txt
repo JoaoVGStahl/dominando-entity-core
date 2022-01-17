@@ -1,0 +1,54 @@
+info: 17/01/2022 09:33:34.258 CoreEventId.ContextInitialized[10403] (Microsoft.EntityFrameworkCore.Infrastructure) 
+      Entity Framework Core 5.0.0 initialized 'ApplicatonContext' using provider 'Microsoft.EntityFrameworkCore.SqlServer' with options: None
+dbug: 17/01/2022 09:33:34.303 CoreEventId.QueryCompilationStarting[10111] (Microsoft.EntityFrameworkCore.Query) 
+      Compiling query expression: 
+      'DbSet<Departamento>().FromSql(execute GetDepartamentos @Dep, __p_0)
+      '
+dbug: 17/01/2022 09:33:34.410 CoreEventId.QueryExecutionPlanned[10107] (Microsoft.EntityFrameworkCore.Query) 
+      Generated query execution expression: 
+      'queryContext => new FromSqlQueryingEnumerable<Departamento>(
+          (RelationalQueryContext)queryContext, 
+          RelationalCommandCache.SelectExpression(
+              Projection Mapping:
+                  EmptyProjectionMember -> Dictionary<IProperty, int> { [Property: Departamento.Id (int) Required PK AfterSave:Throw ValueGenerated.OnAdd, 0], [Property: Departamento.Ativo (bool) Required, 1], [Property: Departamento.Descricao (string), 2], [Property: Departamento.Excluido (bool) Required, 3], }
+              SELECT d.Id, d.Ativo, d.Descricao, d.Excluido
+              FROM execute GetDepartamentos @Dep), 
+          List<string> { "Id", "Ativo", "Descricao", "Excluido", }, 
+          Func<QueryContext, DbDataReader, int[], Departamento>, 
+          Entity.Data.ApplicatonContext, 
+          False, 
+          False
+      )'
+dbug: 17/01/2022 09:33:34.453 RelationalEventId.CommandCreating[20103] (Microsoft.EntityFrameworkCore.Database.Command) 
+      Creating DbCommand for 'ExecuteReader'.
+dbug: 17/01/2022 09:33:34.456 RelationalEventId.CommandCreated[20104] (Microsoft.EntityFrameworkCore.Database.Command) 
+      Created DbCommand for 'ExecuteReader' (22ms).
+dbug: 17/01/2022 09:33:34.461 RelationalEventId.ConnectionOpening[20000] (Microsoft.EntityFrameworkCore.Database.Connection) 
+      Opening connection to database 'PontoSys-02' on server 'DESKTOP-LD0IN04\DELLSERVER'.
+dbug: 17/01/2022 09:33:34.614 RelationalEventId.ConnectionOpened[20001] (Microsoft.EntityFrameworkCore.Database.Connection) 
+      Opened connection to database 'PontoSys-02' on server 'DESKTOP-LD0IN04\DELLSERVER'.
+dbug: 17/01/2022 09:33:34.624 RelationalEventId.CommandExecuting[20100] (Microsoft.EntityFrameworkCore.Database.Command) 
+      Executing DbCommand [Parameters=[@Dep='?' (Size = 12)], CommandType='Text', CommandTimeout='30']
+      execute GetDepartamentos @Dep
+info: 17/01/2022 09:33:34.654 RelationalEventId.CommandExecuted[20101] (Microsoft.EntityFrameworkCore.Database.Command) 
+      Executed DbCommand (36ms) [Parameters=[@Dep='?' (Size = 12)], CommandType='Text', CommandTimeout='30']
+      execute GetDepartamentos @Dep
+dbug: 17/01/2022 09:33:34.680 CoreEventId.StartedTracking[10806] (Microsoft.EntityFrameworkCore.ChangeTracking) 
+      Context 'ApplicatonContext' started tracking 'Departamento' entity. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see key values.
+dbug: 17/01/2022 09:33:34.701 CoreEventId.StartedTracking[10806] (Microsoft.EntityFrameworkCore.ChangeTracking) 
+      Context 'ApplicatonContext' started tracking 'Departamento' entity. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see key values.
+dbug: 17/01/2022 09:33:34.702 CoreEventId.StartedTracking[10806] (Microsoft.EntityFrameworkCore.ChangeTracking) 
+      Context 'ApplicatonContext' started tracking 'Departamento' entity. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see key values.
+dbug: 17/01/2022 09:33:34.706 RelationalEventId.DataReaderDisposing[20300] (Microsoft.EntityFrameworkCore.Database.Command) 
+      A data reader was disposed.
+dbug: 17/01/2022 09:33:34.708 RelationalEventId.ConnectionClosing[20002] (Microsoft.EntityFrameworkCore.Database.Connection) 
+      Closing connection to database 'PontoSys-02' on server 'DESKTOP-LD0IN04\DELLSERVER'.
+dbug: 17/01/2022 09:33:34.712 RelationalEventId.ConnectionClosed[20003] (Microsoft.EntityFrameworkCore.Database.Connection) 
+      Closed connection to database 'PontoSys-02' on server 'DESKTOP-LD0IN04\DELLSERVER'.
+dbug: 17/01/2022 09:33:34.716 CoreEventId.ContextDisposed[10407] (Microsoft.EntityFrameworkCore.Infrastructure) 
+      'ApplicatonContext' disposed.
+info: 17/01/2022 09:36:29.562 CoreEventId.ContextInitialized[10403] (Microsoft.EntityFrameworkCore.Infrastructure) 
+      Entity Framework Core 5.0.0 initialized 'ApplicatonContext' using provider 'Microsoft.EntityFrameworkCore.SqlServer' with options: None
+info: 17/01/2022 09:36:30.010 RelationalEventId.CommandExecuted[20101] (Microsoft.EntityFrameworkCore.Database.Command) 
+      Executed DbCommand (34ms) [Parameters=[@Dep='?' (Size = 12)], CommandType='Text', CommandTimeout='30']
+      execute GetDepartamentos @Dep

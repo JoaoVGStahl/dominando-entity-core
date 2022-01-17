@@ -30,8 +30,78 @@ namespace DominandoEntityCore
 
             //InserirViaStoredProcedures();
 
-            ConsultaViaStoredProcedures();
+            //ConsultaViaStoredProcedures();
 
+            //ConsultaDepartamentos();
+
+            //DadosSensiveis();
+
+            //HabilitandoBatchSize();
+
+            CommandTimeout();
+
+        }
+
+        static void ExecutarEstrategiaResiliencia()
+        {
+            // ! Não salvar dados duplicados no banco
+            
+            using var db = new ApplicatonContext();
+
+            var strategy = db.Database.CreateExecutionStrategy();
+
+            strategy.Execute(() =>
+            {
+                using var transaction = db.Database.BeginTransaction();
+
+                db.Departamentos.Add(new Departamento { Descricao = "Departamento Transaction" });
+
+                db.SaveChanges();
+
+                transaction.Commit();
+            });
+        }
+
+        static void CommandTimeout()
+        {
+            using var db = new ApplicatonContext();
+
+            db.Database.SetCommandTimeout(10);
+
+            db.Database.ExecuteSqlRaw("WAITFOR DELAY '00:00:07'; SELECT 1");
+        }
+
+        static void HabilitandoBatchSize()
+        {
+            using var db = new ApplicatonContext();
+
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
+
+            for (int i = 0; i < 50; i++)
+            {
+                db.Departamentos.Add(
+                    new Departamento
+                    {
+                        Descricao = "Departamento" + i
+                    }
+                );
+            }
+            db.SaveChanges();
+        }
+        static void DadosSensiveis()
+        {
+            using var db = new ApplicatonContext();
+
+            var descricao = "Departamento";
+
+            var departamentos = db.Departamentos.Where(p => p.Descricao == descricao).ToArray();
+        }
+        static void ConsultaDepartamentos()
+        {
+            using var db = new ApplicatonContext();
+
+            var departamentos = db.Departamentos.Where(p => p.Id > 0).ToArray();
         }
 
         static void ConsultaViaStoredProcedures()
@@ -40,7 +110,7 @@ namespace DominandoEntityCore
 
             var dep = new SqlParameter("@Dep", "Departamento");
 
-            var departamentos = db.Departamentos.FromSqlRaw("execute GetDepartamentos @Dep",dep).ToList();
+            var departamentos = db.Departamentos.FromSqlRaw("execute GetDepartamentos @Dep", dep).ToList();
 
             // * var departamentos = db.Departamentos.FromSqlRaw("execute GetDepartamentos @p0", "D").ToList();
 
