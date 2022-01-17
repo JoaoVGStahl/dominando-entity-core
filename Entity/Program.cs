@@ -6,6 +6,9 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 namespace DominandoEntityCore
 {
+    // ? Collections é a forma como os caracteres são codigificados e interpretados na base de dados / Como meus dados são ordenados e comparados.
+    // ? SQL server NÃO é Case Sensitive
+    // ? PostGree é Case Sensitive
     class Program
     {
         static void Main(string[] args)
@@ -38,15 +41,25 @@ namespace DominandoEntityCore
 
             //HabilitandoBatchSize();
 
-            CommandTimeout();
+            //CommandTimeout();
 
+            //ExecutarEstrategiaResiliencia();
+
+            Collection();
+        }
+
+        static void Collection(){
+            using var db =new  ApplicationContext();
+
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
         }
 
         static void ExecutarEstrategiaResiliencia()
         {
             // ! Não salvar dados duplicados no banco
             
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             var strategy = db.Database.CreateExecutionStrategy();
 
@@ -64,7 +77,7 @@ namespace DominandoEntityCore
 
         static void CommandTimeout()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             db.Database.SetCommandTimeout(10);
 
@@ -73,7 +86,7 @@ namespace DominandoEntityCore
 
         static void HabilitandoBatchSize()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
@@ -91,7 +104,7 @@ namespace DominandoEntityCore
         }
         static void DadosSensiveis()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             var descricao = "Departamento";
 
@@ -99,14 +112,14 @@ namespace DominandoEntityCore
         }
         static void ConsultaDepartamentos()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             var departamentos = db.Departamentos.Where(p => p.Id > 0).ToArray();
         }
 
         static void ConsultaViaStoredProcedures()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             var dep = new SqlParameter("@Dep", "Departamento");
 
@@ -134,14 +147,14 @@ namespace DominandoEntityCore
                 SELECT * FROM Departamentos Where Descricao Like @Descricao + '%'
             END";
 
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             db.Database.ExecuteSqlRaw(criarDepartamento);
         }
 
         static void InserirViaStoredProcedures()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             db.Database.ExecuteSqlRaw("execute CriarDepartamento @p0, @p1", "Departamento Via Procedure", true);
         }
@@ -162,7 +175,7 @@ namespace DominandoEntityCore
 
 
 
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             db.Database.ExecuteSqlRaw(criarDepartamento);
         }
@@ -172,7 +185,7 @@ namespace DominandoEntityCore
             // ! SplitQuery Implementada no EF Core 5
             // ! Utilizado quando se realiza uma constula com muitos dados no banco.
             // ! Cuidado com explosão de plano carteziano!
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
 
             Setup(db);
 
@@ -194,7 +207,7 @@ namespace DominandoEntityCore
         static void Consulta1NN1()
         {
             //  * Consultas Segura
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
             Setup(db);
 
             // * N-1
@@ -220,7 +233,7 @@ namespace DominandoEntityCore
         static void ConsultaComTag()
         {
             //  * Consultas Segura
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
             Setup(db);
 
             var departamentos = db.Departamentos.TagWith("Consulta Departamentos No Banco! - João Girardi").ToList();
@@ -233,7 +246,7 @@ namespace DominandoEntityCore
         static void ConsultaInterpolada()
         {
             //  * Consultas Segura
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
             Setup(db);
 
             var id = 1;
@@ -249,7 +262,7 @@ namespace DominandoEntityCore
         static void ConsultaParametrizada()
         {
             //  * Consultas Segura
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
             Setup(db);
 
             var id = new SqlParameter
@@ -270,7 +283,7 @@ namespace DominandoEntityCore
         {
             // ! Busca no banco apenas os campos que serão utilizados
             // ! Consultas projetadas é um boa práicas
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
             Setup(db);
 
             var departamentos = db.Departamentos
@@ -290,7 +303,7 @@ namespace DominandoEntityCore
         }
         static void IgnoreFiltroGlobal()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
             Setup(db);
 
             var departamentos = db.Departamentos.IgnoreQueryFilters().Where(p => p.Id > 0).ToList();
@@ -302,7 +315,7 @@ namespace DominandoEntityCore
         }
         static void FiltroGlobal()
         {
-            using var db = new ApplicatonContext();
+            using var db = new ApplicationContext();
             Setup(db);
 
             var departamentos = db.Departamentos.Where(p => p.Id > 0).ToList();
@@ -313,7 +326,7 @@ namespace DominandoEntityCore
             }
         }
 
-        static void Setup(ApplicatonContext db)
+        static void Setup(ApplicationContext db)
         {
             if (db.Database.EnsureCreated())
             {
