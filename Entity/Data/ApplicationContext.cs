@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using Entity.Configurations;
 using Entity.domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
 
 namespace Entity.Data
@@ -11,10 +15,17 @@ namespace Entity.Data
     {
         private readonly StreamWriter _writer = new StreamWriter("EntityLog.txt", append: true);
         public DbSet<Departamento> Departamentos { get; set; }
-
         public DbSet<Funcionario> Funcionarios { get; set; }
-
         public DbSet<Estado> Estados { get; set; }
+        public DbSet<Conversor> Conversores { get; set; }
+        public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<Filme> Filmes { get; set; }
+        public DbSet<Ator> Atores { get; set; }
+        public DbSet<Documento> Documentos { get; set; }
+        public DbSet<Pessoa> Pessoas { get; set; }
+        public DbSet<Instrutor> Instrutores { get; set; }
+        public DbSet<Aluno> Alunos { get; set; }
+        public DbSet<Dictionary<string, object>> Configuracoes => Set<Dictionary<string,object>>("Configurações");
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -91,13 +102,62 @@ namespace Entity.Data
 
             */
 
-            // ? Propagação de dados => Utilizado para informações que não serão alteradas com frequência
+            /*
+             ? Propagação de dados => Utilizado para informações que não serão alteradas com frequência
             modelBuilder
                 .Entity<Estado>()
                 .HasData(new[]{
                     new Estado { Id = 1, Nome = "São Paulo"},
                     new Estado {Id= 2, Nome = "Rio De Janeiro"}
                 });
+
+            */
+
+            /*
+            modelBuilder.HasDefaultSchema("cadastros");
+
+            modelBuilder.Entity<Estado>().ToTable("Estados", "SegundaEsquema");
+            */
+
+            /*
+             ? Todos os conversores de valores do EFCore => Microsoft.EntityFrameworkCore.Storage.ValueConversion
+
+            var conversao = new ValueConverter<Versao,string>(p => p.ToString(), p =>(Versao)Enum.Parse(typeof(Versao), p));
+
+            var conversao1 = new EnumToStringConverter<Versao>(); 
+
+            modelBuilder.Entity<Conversor>()
+                .Property(p => p.Versao)
+                .HasConversion(conversao1);
+                .HasConversion(conversao);
+                .HasConversion<string>(); 
+                .HasConversion(p => p.ToString(), p =>(Versao)Enum.Parse(typeof(Versao), p));  ? Salva no banco como String, porem ao ler converte para o obj Versao que é um Enum
+
+            modelBuilder.Entity<Conversor>()
+                .Property( p => p.Status)
+                .HasConversion(new Conversores.ConversorCustomizado());
+
+            modelBuilder.Entity<Departamento>()
+                .Property<DateTime>("UltimaAtualizacao");
+            */
+            // ? Ativar uma configuração de Entidade
+            modelBuilder.ApplyConfiguration( new ClienteConfiguration());
+
+            // ? Ativar todas as configurações de entidade
+            //modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
+
+            modelBuilder.SharedTypeEntity<Dictionary<string,object>>("Configurações", b =>{
+                b.Property<int>("Id");
+
+                b.Property<string>("Chave")
+                    .HasColumnType("VARCHAR(40)")
+                    .IsRequired();
+                
+                b.Property<string>("Valor")
+                    .HasColumnType("VARCHAR(255)")
+                    .IsRequired();
+            });
         }
 
         // ? Flush StreamWriter
