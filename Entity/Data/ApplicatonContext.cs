@@ -15,7 +15,8 @@ namespace Entity.Data
         {
             const string strConnection = "Data Source=DESKTOP-LD0IN04\\DELLSERVER; Initial Catalog=PontoSys-02; User Id=sa;Password=@jr120401;pooling=true;";
             optionsBuilder
-            .UseSqlServer(strConnection, p => p.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
+            //.UseSqlServer(strConnection, p => p.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
+            .UseSqlServer(strConnection)
             .EnableSensitiveDataLogging()
             .LogTo(Console.WriteLine, LogLevel.Information);
         }

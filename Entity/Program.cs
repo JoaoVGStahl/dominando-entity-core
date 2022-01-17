@@ -24,12 +24,84 @@ namespace DominandoEntityCore
 
             //Consulta1NN1();
 
-            DivisaoConsulta();
+            //DivisaoConsulta();
+
+            //CriarStoredProcedures();
+
+            //InserirViaStoredProcedures();
+
+            ConsultaViaStoredProcedures();
+
         }
 
-        static void DivisaoConsulta(){
+        static void ConsultaViaStoredProcedures()
+        {
+            using var db = new ApplicatonContext();
 
-            // ! Evitar Explosão Carteziana Implementada no EF Core 5
+            var dep = new SqlParameter("@Dep", "Departamento");
+
+            var departamentos = db.Departamentos.FromSqlRaw("execute GetDepartamentos @Dep",dep).ToList();
+
+            // * var departamentos = db.Departamentos.FromSqlRaw("execute GetDepartamentos @p0", "D").ToList();
+
+            // * var departamentos = db.Departamentos.FromSqlInterpolated($"execute GetDepartamentos {dep}").ToList();
+
+            // * var departamentos = db.Departamentos.FromSqlRaw("execute GetDepartamentos {0}", "D").ToList();
+
+            foreach (var departamento in departamentos)
+            {
+                Console.WriteLine(departamento.Descricao);
+            }
+        }
+        static void CriarConsultaViaStoredProcedures()
+        {
+
+            var criarDepartamento = @"
+            CREATE OR ALTER PROCEDURE GetDepartamentos
+                 @Descricao VARCHAR(50)
+            AS 
+            BEGIN
+                SELECT * FROM Departamentos Where Descricao Like @Descricao + '%'
+            END";
+
+            using var db = new ApplicatonContext();
+
+            db.Database.ExecuteSqlRaw(criarDepartamento);
+        }
+
+        static void InserirViaStoredProcedures()
+        {
+            using var db = new ApplicatonContext();
+
+            db.Database.ExecuteSqlRaw("execute CriarDepartamento @p0, @p1", "Departamento Via Procedure", true);
+        }
+        static void CriarStoredProcedures()
+        {
+
+            var criarDepartamento = @"
+            CREATE OR ALTER PROCEDURE CriarDepartamento
+                 @Descricao VARCHAR(50),
+                @Ativo bit
+            AS 
+            BEGIN
+                INSERT INTO
+                    Departamentos(Descricao,Ativo,Excluido)
+                VALUES (@Descricao,@Ativo,0)
+            END";
+
+
+
+
+            using var db = new ApplicatonContext();
+
+            db.Database.ExecuteSqlRaw(criarDepartamento);
+        }
+        static void DivisaoConsulta()
+        {
+
+            // ! SplitQuery Implementada no EF Core 5
+            // ! Utilizado quando se realiza uma constula com muitos dados no banco.
+            // ! Cuidado com explosão de plano carteziano!
             using var db = new ApplicatonContext();
 
             Setup(db);
