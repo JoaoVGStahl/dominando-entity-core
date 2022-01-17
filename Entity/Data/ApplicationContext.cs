@@ -25,6 +25,7 @@ namespace Entity.Data
         public DbSet<Pessoa> Pessoas { get; set; }
         public DbSet<Instrutor> Instrutores { get; set; }
         public DbSet<Aluno> Alunos { get; set; }
+        public DbSet<Atributo> Atributos { get; set; }
         public DbSet<Dictionary<string, object>> Configuracoes => Set<Dictionary<string,object>>("Configurações");
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
