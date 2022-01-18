@@ -39,6 +39,7 @@ namespace Entity.Data
             const string strConnection = "Data Source=DESKTOP-LD0IN04\\DELLSERVER;Initial Catalog=PontoSys-02;User Id=sa;Password=@jr120401;Pooling=True;Application Name=EFCore";
             optionsBuilder
                 .UseSqlServer(strConnection)
+                //.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution)
                 .LogTo(Console.WriteLine, LogLevel.Information)
                 .EnableSensitiveDataLogging()
                 .AddInterceptors(new Interceptadores.InterceptadorDeComandos())

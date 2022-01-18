@@ -20,11 +20,15 @@ namespace DominandoEntityCore
      ? Isolamento   => Um transação ainda em andamento ocorre isoladamente das outras operações
      ? Durabilidade => Faz com que os dados sejam gravados mesmo após uma reinicialização.
      ? UDF (User Definid Function) => São funções definidas pelo usuário
+     ? AsNoTracking vs Tracking
+     ? Resolução de Identidade
+     ? 
     */
     class Program
     {
         static void Main(string[] args)
         {
+            //Setup();
             //FiltroGlobal();
             //IgnoreFiltroGlobal();
             //ConsultaProjetada();
@@ -69,7 +73,120 @@ namespace DominandoEntityCore
             //TransactionScope();
             //FuncaoLeft();
             //FuncaoDefinidaPeloUsuario();
-            DateDIFF();
+            //DateDIFF();
+            //ConsultaRastreada();
+            //ConsultaNaoRastreada();
+            //ConsultaComResolucaoIdentidade();
+            //ConsultaCustomizada();
+            //ConsultaProjetadaERastrada();
+            //Inserir_200_Departamentos_Com_1MB();
+            ConsultaProjetada2();
+        }
+        static void ConsultaProjetada2()
+        {
+
+            using var db = new ApplicationContext();
+            // ! 360 MB / 6s 790md
+            // ! var departamentos = db.Departamentos.ToArray();
+
+            // * 55 MB / 3s 165ms
+            var departamentos = db.Departamentos.Select(p => p.Descricao).ToArray();
+            var memoria = (System.Diagnostics.Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024) + " MB";
+            Console.WriteLine(memoria);
+        }
+        static void Inserir_200_Departamentos_Com_1MB()
+        {
+            // ? 36S 616ms
+            using var db = new ApplicationContext();
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
+            var random = new Random();
+
+            db.Departamentos.AddRange(Enumerable.Range(1, 200).Select(p => new Departamento
+            {
+                Descricao = "Departamento Teste",
+                Image = getBytes()
+            }));
+
+            db.SaveChanges();
+
+            byte[] getBytes()
+            {
+                var buffer = new byte[1024 * 1024];
+                random.NextBytes(buffer);
+                return buffer;
+            }
+        }
+        static void ConsultasProjetadas()
+        {
+            // ? Alterando o comportamento enquanto o contexto existir
+            using var db = new ApplicationContext();
+            var departamentos = db.Departamentos.Include(p => p.Funcionarios).Select(p => new
+            {
+                Departamento = p,
+                TotalFuncionario = p.Funcionarios.Count()
+            }).ToList();
+
+            departamentos[0].Departamento.Descricao = "Departamento Teste Atualizado";
+
+            db.SaveChanges();
+        }
+        static void ConsultaProjetadaERastrada()
+        {
+            // ? Alterando o comportamento enquanto o contexto existir
+            using var db = new ApplicationContext();
+            var departamentos = db.Departamentos.Include(p => p.Funcionarios).Select(p => new
+            {
+                Departamento = p,
+                TotalFuncionario = p.Funcionarios.Count()
+            }).ToList();
+
+            departamentos[0].Departamento.Descricao = "Departamento Teste Atualizado";
+
+            db.SaveChanges();
+        }
+        static void ConsultaCustomizada()
+        {
+            // ? Alterando o comportamento enquanto o contexto existir
+            using var db = new ApplicationContext();
+            db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+            var funcionarios = db.Funcionarios.Include(p => p.Departamento).ToList();
+        }
+        static void ConsultaComResolucaoIdentidade()
+        {
+            // ? Agora o EFCore foi até o banco, e criou apenas 1 Instância de Departamento para cada Funcionário
+            using var db = new ApplicationContext();
+            var funcionarios = db.Funcionarios.AsNoTrackingWithIdentityResolution().Include(p => p.Departamento).ToList();
+        }
+        static void ConsultaNaoRastreada()
+        {
+            // ? Como a cosulta não foi rastreada, o EFCore criou 100 instâncias para cada objeto funcionário.
+            using var db = new ApplicationContext();
+            var funcionarios = db.Funcionarios.AsNoTracking().Include(p => p.Departamento).ToList();
+        }
+        static void ConsultaRastreada()
+        {
+            // ? Como a cosulta foi rastreada, o EFCore recuperou a instancia do departamento e reutilizou para o funcionário.
+            using var db = new ApplicationContext();
+            var funcionarios = db.Funcionarios.Include(p => p.Departamento).ToList();
+        }
+        static void Setup()
+        {
+            using var db = new ApplicationContext();
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
+            db.Departamentos.Add(new Departamento
+            {
+                Descricao = "Departamento Teste",
+                Ativo = true,
+                Funcionarios = Enumerable.Range(1, 100).Select(p => new Funcionario
+                {
+                    CPF = p.ToString().PadLeft(11, '0'),
+                    Nome = $"Funcionando {p}",
+                    RG = p.ToString()
+                }).ToList()
+            });
+            db.SaveChanges();
         }
         static void DateDIFF()
         {
@@ -82,7 +199,7 @@ namespace DominandoEntityCore
             */
             var resultado = db
                 .Livros
-                .Select(p => MinhasFuncoes.DateDiff("DAY",p.CadastradoEm, DateTime.Now));
+                .Select(p => MinhasFuncoes.DateDiff("DAY", p.CadastradoEm, DateTime.Now));
             foreach (var diff in resultado)
             {
                 Console.WriteLine(diff);
