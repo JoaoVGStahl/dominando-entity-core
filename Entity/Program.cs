@@ -74,23 +74,198 @@ namespace DominandoEntityCore
 
             //ExemploTPH();
 
-            //PacotesDePropriesdades();
+            //PacotesDePropriedades();
 
-            Atributos();
+            //Atributos();
+
+            //FuncoesDeDatas();
+
+            //FuncaoLike();
+
+            //FuncaoDataLength();
+
+            //FuncaoProperty();
+
+            FuncaoCollate();
 
         }
 
-        static void Atributos(){
-            using (var db = new ApplicationContext()){
+        // ? Realizar consultas com Collates especificos => Por ex: Descricao1 é utilizado CaseSensitive, ja Descricao2 não!
+        static void FuncaoCollate()
+        {
+            using (var db = new ApplicationContext())
+            {
 
-                db.Database.EnsureDeleted();
-                db.Database.EnsureCreated();
+                var consulta1 = db
+                    .Funcoes
+                    .FirstOrDefault(p=> EF.Functions.Collate(p.Descricao1, "SQL_Latin1_General_CP1_CS_AS") == "tela");
+
+                var consulta2 = db
+                    .Funcoes
+                    .FirstOrDefault(p=> EF.Functions.Collate(p.Descricao1, "SQL_Latin1_General_CP1_CI_AS") == "Tela");
+
+                Console.WriteLine($"Consulta1: {consulta1?.Descricao1}");
                 
+                Console.WriteLine($"Consulta2: {consulta2?.Descricao1}");
+            }
+            /*
+                Consulta1: 
+                Consulta2: Tela
+            */
+        }
+
+        static void FuncaoProperty()
+        {
+            ApagarCriarBanco();
+
+            using (var db = new ApplicationContext())
+            {
+                // ? Nunca Utilizar o AsNoTracking
+                var resultado = db
+                    .Funcoes
+                    //.AsNoTracking()
+                    .FirstOrDefault(p=> EF.Property<string>(p, "PropriedadeSombra") == "Teste");
+
+                var propriedadeSombra = db
+                    .Entry(resultado)
+                    .Property<string>("PropriedadeSombra")
+                    .CurrentValue;
+
+                Console.WriteLine("Resultado:");     
+                Console.WriteLine(propriedadeSombra); 
+            }
+        } 
+
+        static void FuncaoDataLength()
+        {
+            using (var db = new ApplicationContext())
+            {
+                var resultado = db
+                    .Funcoes
+                    .AsNoTracking()
+                    .Select(p => new
+                    {
+                        TotalBytesCampoData = EF.Functions.DataLength(p.Data1),
+                        TotalBytes1 = EF.Functions.DataLength(p.Descricao1),
+                        TotalBytes2 = EF.Functions.DataLength(p.Descricao2),
+                        Total1 = p.Descricao1.Length,
+                        Total2 = p.Descricao2.Length
+                    })
+                    .FirstOrDefault();
+
+                Console.WriteLine("Resultado:");
+
+                Console.WriteLine(resultado);
+            }
+            // * SELECT TOP(1) DATALENGTH([f].[Data1]) AS [TotalBytesCampoData], DATALENGTH([f].[Descricao1]) AS [TotalBytes1], DATALENGTH([f].[Descricao2]) AS [TotalBytes2], CAST(LEN([f].[Descricao1]) AS int) AS [Total1], CAST(LEN([f].[Descricao2]) AS int) AS [Total2] FROM [Funcoes] AS [f]
+            
+            /*
+            ?   Formato NVARCHAR reserva 1 Byte a mais por conta de Linguas que ocupam 2 Bytes por caracteres.
+             * Resultado:
+             * { TotalBytesCampoData = 8, TotalBytes1 = 12, TotalBytes2 = 6, Total1 = 6, Total2 = 6 } 
+             */
+        }
+
+        static void FuncaoLike()
+        {
+            using (var db = new ApplicationContext())
+            {
                 var script = db.Database.GenerateCreateScript();
 
                 Console.WriteLine(script);
 
-                db.Atributos.Add( new Atributo{
+                var dados = db
+                    .Funcoes
+                    .AsNoTracking()
+                    //.Where(p => EF.Functions.Like(p.Descricao1, "Bo%"))
+                    .Where(p => EF.Functions.Like(p.Descricao1, "B[ao]%"))
+                    .Select(p => p.Descricao1)
+                    .ToArray();
+
+                Console.WriteLine("Resultado:");
+                foreach (var descricao in dados)
+                {
+                    Console.WriteLine(descricao);
+                }
+            }
+            // * SELECT [f].[Descricao1] FROM [Funcoes] AS [f] WHERE [f].[Descricao1] LIKE N'B[ao]%'
+        }
+
+        static void FuncoesDeDatas()
+        {
+            ApagarCriarBanco();
+
+            using (var db = new ApplicationContext())
+            {
+                var script = db.Database.GenerateCreateScript();
+
+                Console.WriteLine(script);
+
+                var dados = db.Funcoes.AsNoTracking().Select(p =>
+                   new
+                   {
+                       Dias = EF.Functions.DateDiffDay(DateTime.Now, p.Data1),
+                       Meses = EF.Functions.DateDiffMonth(DateTime.Now, p.Data1),
+                       Data = EF.Functions.DateFromParts(2021, 1, 2),
+                       DataValida = EF.Functions.IsDate(p.Data2),
+                   });
+
+                foreach (var f in dados)
+                {
+                    Console.WriteLine(f);
+                }
+            }
+            // * SELECT DATEDIFF(DAY, GETDATE(), [f].[Data1]) AS [Dias], DATEDIFF(MONTH, GETDATE(), [f].[Data1]) AS [Meses], DATEFROMPARTS(2021, 1, 2) AS [Data], CAST(ISDATE([f].[Data2]) AS bit) AS [DataValida] FROM [Funcoes] AS [f]
+        }
+
+        static void ApagarCriarBanco()
+        {
+            using var db = new ApplicationContext();
+
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
+
+            db.Funcoes.AddRange(
+                new Funcao
+                {
+                    Data1 = DateTime.Now.AddDays(2),
+                    Data2 = "2022-01-01",
+                    Descricao1 = "Bala 1",
+                    Descricao2 = "Bala 1"
+                },
+                new Funcao
+                {
+                    Data1 = DateTime.Now.AddDays(1),
+                    Data2 = "XX22-01-01",
+                    Descricao1 = "Bola 2",
+                    Descricao2 = "Bola 2"
+                },
+                new Funcao
+                {
+                    Data1 = DateTime.Now.AddDays(1),
+                    Data2 = "XX22-01-01",
+                    Descricao1 = "Tela",
+                    Descricao2 = "Tela"
+                }
+            );
+
+            db.SaveChanges();
+        }
+
+        static void Atributos()
+        {
+            using (var db = new ApplicationContext())
+            {
+
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
+
+                var script = db.Database.GenerateCreateScript();
+
+                Console.WriteLine(script);
+
+                db.Atributos.Add(new Atributo
+                {
                     Descricao = "Exemplo",
                     Observacao = "Observacao"
                 });
@@ -99,12 +274,15 @@ namespace DominandoEntityCore
             }
         }
 
-        static void PacotesDePropriesdades(){
-            using (var db = new ApplicationContext()){
+        static void PacotesDePropriedades()
+        {
+            using (var db = new ApplicationContext())
+            {
                 db.Database.EnsureDeleted();
                 db.Database.EnsureCreated();
 
-                var configuracao = new Dictionary<string, object>{
+                var configuracao = new Dictionary<string, object>
+                {
                     ["Chave"] = "SenhaBancoDados",
                     ["Valor"] = Guid.NewGuid().ToString()
                 };
@@ -114,14 +292,14 @@ namespace DominandoEntityCore
 
                 var configuracoes = db.Configuracoes
                     .AsNoTracking()
-                    .Where( p => p["Chave"].Equals("SenhaBancoDados"))
+                    .Where(p => p["Chave"].Equals("SenhaBancoDados"))
                     .ToArray();
 
                 foreach (var dic in configuracoes)
                 {
                     Console.WriteLine($"Chave: {dic["Chave"]} - Valor: {dic["Valor"]}");
                 }
-                
+
             }
         }
 
@@ -166,8 +344,10 @@ namespace DominandoEntityCore
             }
         }
 
-        static void CampoDeApoio(){
-            using ( var db = new ApplicationContext()){
+        static void CampoDeApoio()
+        {
+            using (var db = new ApplicationContext())
+            {
                 db.Database.EnsureDeleted();
                 db.Database.EnsureCreated();
 
@@ -224,26 +404,31 @@ namespace DominandoEntityCore
             }
         }
 
-        static void Relacionamento1ParaMuitos(){
-            using (var db = new ApplicationContext()){
+        static void Relacionamento1ParaMuitos()
+        {
+            using (var db = new ApplicationContext())
+            {
                 db.Database.EnsureDeleted();
                 db.Database.EnsureCreated();
 
-                var estado = new Estado{
-                    Nome = "Sao Paulo", Governador = new Governador{ Nome = "Joao Girardi"}
+                var estado = new Estado
+                {
+                    Nome = "Sao Paulo",
+                    Governador = new Governador { Nome = "Joao Girardi" }
                 };
 
-                estado.Cidades.Add( new Cidade { Nome = "Bebedouro"});
+                estado.Cidades.Add(new Cidade { Nome = "Bebedouro" });
 
                 db.Estados.Add(estado);
 
                 db.SaveChanges();
             }
 
-            using (var db = new ApplicationContext()){
+            using (var db = new ApplicationContext())
+            {
                 var estados = db.Estados.ToList();
 
-                estados[0].Cidades.Add(new Cidade {Nome = "Barretos"});
+                estados[0].Cidades.Add(new Cidade { Nome = "Barretos" });
 
                 db.SaveChanges();
 
@@ -276,7 +461,8 @@ namespace DominandoEntityCore
 
             var estados = db.Estados.AsNoTracking().ToList();
 
-            estados.ForEach(est => {
+            estados.ForEach(est =>
+            {
                 Console.WriteLine($"Estado: {est.Nome}, Governador: {est.Governador.Nome}");
             });
 

@@ -26,7 +26,9 @@ namespace Entity.Data
         public DbSet<Instrutor> Instrutores { get; set; }
         public DbSet<Aluno> Alunos { get; set; }
         public DbSet<Atributo> Atributos { get; set; }
-        public DbSet<Dictionary<string, object>> Configuracoes => Set<Dictionary<string,object>>("Configurações");
+
+        public DbSet<Funcao> Funcoes { get; set; }
+        public DbSet<Dictionary<string, object>> Configuracoes => Set<Dictionary<string, object>>("Configurações");
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -142,23 +144,33 @@ namespace Entity.Data
                 .Property<DateTime>("UltimaAtualizacao");
             */
             // ? Ativar uma configuração de Entidade
-            modelBuilder.ApplyConfiguration( new ClienteConfiguration());
+            modelBuilder.ApplyConfiguration(new ClienteConfiguration());
 
             // ? Ativar todas as configurações de entidade
             //modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
 
-            modelBuilder.SharedTypeEntity<Dictionary<string,object>>("Configurações", b =>{
+            modelBuilder.SharedTypeEntity<Dictionary<string, object>>("Configurações", b =>
+            {
                 b.Property<int>("Id");
 
                 b.Property<string>("Chave")
                     .HasColumnType("VARCHAR(40)")
                     .IsRequired();
-                
+
                 b.Property<string>("Valor")
                     .HasColumnType("VARCHAR(255)")
                     .IsRequired();
             });
+
+            // ? Propriedade de sombra são utilizadas quando não queremo expor um campo em nossas Views
+            modelBuilder
+                .Entity<Funcao>(confi =>
+                {
+                    confi.Property<string>("PropriedadeSombra")
+                        .HasColumnType("VARCHAR(100)")
+                        .HasDefaultValueSql("'TESTE'");
+                });
         }
 
         // ? Flush StreamWriter
