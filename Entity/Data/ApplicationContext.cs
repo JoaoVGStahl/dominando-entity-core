@@ -36,7 +36,10 @@ namespace Entity.Data
             optionsBuilder
                 .UseSqlServer(strConnection)
                 .LogTo(Console.WriteLine, LogLevel.Information)
-                .EnableSensitiveDataLogging();
+                .EnableSensitiveDataLogging()
+                .AddInterceptors(new Interceptadores.InterceptadorDeComandos())
+                .AddInterceptors(new Interceptadores.InterceptadorDeConexao())
+                .AddInterceptors(new Interceptadores.InterceptadorPersistencia());
             /*
             .UseSqlServer(strConnection, p => p.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
             .UseSqlServer(strConnection)
@@ -59,6 +62,7 @@ namespace Entity.Data
             .LogTo(_writer.WriteLine, LogLevel.Information);
             .EnableDetailedErrors(); // ! Usado apenas em dubug, pois gera uma sobrecarga!
              */
+             
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

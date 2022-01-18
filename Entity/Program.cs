@@ -86,8 +86,34 @@ namespace DominandoEntityCore
 
             //FuncaoProperty();
 
-            FuncaoCollate();
+            //FuncaoCollate();
 
+            //TesteInterceptor();
+
+            TesteInterceptacaoSavingChanges();
+
+        }
+
+        static void TesteInterceptacaoSavingChanges(){
+            using ( var db = new ApplicationContext()){
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
+
+                db.Funcoes.Add( new Funcao {
+                    Descricao1 = "Teste Interceptor"
+                });
+
+                db.SaveChanges();
+            }
+        }
+        static void TesteInterceptor()
+        {
+            using (var db = new ApplicationContext())
+            {
+                var consulta = db.Funcoes.TagWith("Use NOLOCK").FirstOrDefault();
+
+                Console.WriteLine($"Consulta: {consulta?.Descricao1}");
+            }
         }
 
         // ? Realizar consultas com Collates especificos => Por ex: Descricao1 é utilizado CaseSensitive, ja Descricao2 não!
@@ -98,14 +124,14 @@ namespace DominandoEntityCore
 
                 var consulta1 = db
                     .Funcoes
-                    .FirstOrDefault(p=> EF.Functions.Collate(p.Descricao1, "SQL_Latin1_General_CP1_CS_AS") == "tela");
+                    .FirstOrDefault(p => EF.Functions.Collate(p.Descricao1, "SQL_Latin1_General_CP1_CS_AS") == "tela");
 
                 var consulta2 = db
                     .Funcoes
-                    .FirstOrDefault(p=> EF.Functions.Collate(p.Descricao1, "SQL_Latin1_General_CP1_CI_AS") == "Tela");
+                    .FirstOrDefault(p => EF.Functions.Collate(p.Descricao1, "SQL_Latin1_General_CP1_CI_AS") == "Tela");
 
                 Console.WriteLine($"Consulta1: {consulta1?.Descricao1}");
-                
+
                 Console.WriteLine($"Consulta2: {consulta2?.Descricao1}");
             }
             /*
@@ -124,17 +150,17 @@ namespace DominandoEntityCore
                 var resultado = db
                     .Funcoes
                     //.AsNoTracking()
-                    .FirstOrDefault(p=> EF.Property<string>(p, "PropriedadeSombra") == "Teste");
+                    .FirstOrDefault(p => EF.Property<string>(p, "PropriedadeSombra") == "Teste");
 
                 var propriedadeSombra = db
                     .Entry(resultado)
                     .Property<string>("PropriedadeSombra")
                     .CurrentValue;
 
-                Console.WriteLine("Resultado:");     
-                Console.WriteLine(propriedadeSombra); 
+                Console.WriteLine("Resultado:");
+                Console.WriteLine(propriedadeSombra);
             }
-        } 
+        }
 
         static void FuncaoDataLength()
         {
@@ -158,7 +184,7 @@ namespace DominandoEntityCore
                 Console.WriteLine(resultado);
             }
             // * SELECT TOP(1) DATALENGTH([f].[Data1]) AS [TotalBytesCampoData], DATALENGTH([f].[Descricao1]) AS [TotalBytes1], DATALENGTH([f].[Descricao2]) AS [TotalBytes2], CAST(LEN([f].[Descricao1]) AS int) AS [Total1], CAST(LEN([f].[Descricao2]) AS int) AS [Total2] FROM [Funcoes] AS [f]
-            
+
             /*
             ?   Formato NVARCHAR reserva 1 Byte a mais por conta de Linguas que ocupam 2 Bytes por caracteres.
              * Resultado:
