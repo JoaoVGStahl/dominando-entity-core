@@ -28,11 +28,13 @@ namespace Entity.Data
         public DbSet<Atributo> Atributos { get; set; }
 
         public DbSet<Funcao> Funcoes { get; set; }
+
+        public DbSet<Livro> Livros { get; set; }
         public DbSet<Dictionary<string, object>> Configuracoes => Set<Dictionary<string, object>>("Configurações");
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            const string strConnection = "Data Source=DESKTOP-LD0IN04\\DELLSERVER; Initial Catalog=PontoSys-02; User Id=sa;Password=@jr120401;pooling=true;";
+            const string strConnection = "Data Source=DESKTOP-LD0IN04\\DELLSERVER;Initial Catalog=PontoSys-02;User Id=sa;Password=@jr120401;Pooling=True;Application Name=EFCore";
             optionsBuilder
                 .UseSqlServer(strConnection)
                 .LogTo(Console.WriteLine, LogLevel.Information)

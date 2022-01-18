@@ -1,17 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Transactions;
 using Entity.Data;
 using Entity.domain;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 namespace DominandoEntityCore
 {
-    // ? Collections é a forma como os caracteres são codigificados e interpretados na base de dados / Como meus dados são ordenados e comparados.
-    // ? SQL server NÃO é Case Sensitive
-    // ? PostGree é Case Sensitive
+    /*
+     ? Collections é a forma como os caracteres são codigificados e interpretados na base de dados / Como meus dados são ordenados e comparados.
+     ? SQL server NÃO é Case Sensitive
+     ? PostGree é Case Sensitive
 
-    // ? Esquema é a forma de organizar seu modelo de dados lá em seu banco
+     ? Esquema é a forma de organizar seu modelo de dados lá em seu banco
+    
+     ? Transaction  => Atomicidade / Consistência / Isolamento / Durabilidade
+     ? Atomicidade  => Ou Faz tudo ou não faz nada
+     ? Consistência => Garantir que os dados estejam consistente antes e depois de uma transação
+     ? Isolamento   => Um transação ainda em andamento ocorre isoladamente das outras operações
+     ? Durabilidade => Faz com que os dados sejam gravados mesmo após uma reinicialização.
+    */
+
     class Program
     {
         static void Main(string[] args)
@@ -90,16 +100,196 @@ namespace DominandoEntityCore
 
             //TesteInterceptor();
 
-            TesteInterceptacaoSavingChanges();
+            //TesteInterceptacaoSavingChanges();
+
+            //ComportamentoPadrao();
+
+            //GerenciandoTransactionManualmente();
+
+            //SalvarPontoTransacao();
+
+            TransactionScope();
 
         }
 
-        static void TesteInterceptacaoSavingChanges(){
-            using ( var db = new ApplicationContext()){
+        static void TransactionScope()
+        {
+            CadastrarLivro();
+
+            var transactionOptions = new TransactionOptions
+            {
+                IsolationLevel = IsolationLevel.ReadCommitted,
+            };
+
+            using (var scope = new TransactionScope(TransactionScopeOption.Required, transactionOptions))
+            {
+                ConsultarAtualizar();
+                CadastraLivroEnterprise();
+                CadastrarLivroDominandoEFCore();
+
+                scope.Complete();
+            }
+        }
+
+        static void ConsultarAtualizar()
+        {
+            using (var db = new ApplicationContext())
+            {
+                var livro = db.Livros.FirstOrDefault(p => p.Id == 1);
+                livro.Autor = "Rafael Almeida";
+                db.SaveChanges();
+            }
+        }
+
+        static void CadastraLivroEnterprise()
+        {
+            using (var db = new ApplicationContext())
+            {
+                db.Livros.Add(
+                    new Livro
+                    {
+                        Titulo = "ASP.NET Core Enterprise Applications",
+                        Autor = "Eduardo Pires"
+                    });
+                db.SaveChanges();
+            }
+        }
+
+        static void CadastrarLivroDominandoEFCore()
+        {
+            using (var db = new ApplicationContext())
+            {
+                db.Livros.Add(
+                    new Livro
+                    {
+                        Titulo = "Dominando o Entity Framework Core",
+                        Autor = "Rafael Almeida"
+                    });
+                db.SaveChanges();
+            }
+        }
+
+        static void SalvarPontoTransacao()
+        {
+            CadastrarLivro();
+
+            using (var db = new ApplicationContext())
+            {
+                using var transacao = db.Database.BeginTransaction();
+
+                try
+                {
+                    var livro = db.Livros.FirstOrDefault(p => p.Id == 1);
+                    livro.Autor = "João Girardi";
+                    db.SaveChanges();
+
+                    transacao.CreateSavepoint("desfazer_apenas_insercao");
+
+                    db.Livros.Add(
+                        new Livro
+                        {
+                            Titulo = "ASP.NET Core Enterprise Applications",
+                            Autor = "Eduardo Pires"
+                        });
+                    db.SaveChanges();
+
+                    db.Livros.Add(
+                        new Livro
+                        {
+                            Titulo = "Dominando o Entity Framework Core",
+                            Autor = "Rafael Almeida".PadLeft(100, '*')
+                        });
+                    db.SaveChanges();
+
+                    transacao.Commit();
+                }
+                catch (DbUpdateException e)
+                {
+                    transacao.RollbackToSavepoint("desfazer_apenas_insercao");
+
+                    if (e.Entries.Count(p => p.State == EntityState.Added) == e.Entries.Count)
+                    {
+                        transacao.Commit();
+                    }
+                }
+
+            }
+        }
+        static void GerenciandoTransactionManualmente()
+        {
+            CadastrarLivro();
+
+            using (var db = new ApplicationContext())
+            {
+                var transaction = db.Database.BeginTransaction();
+                try
+                {
+                    var livro = db.Livros.FirstOrDefault(p => p.Id == 1);
+                    livro.Autor = "Robert Cecil Martin";
+                    db.SaveChanges();
+
+                    db.Livros.Add(new Livro
+                    {
+                        Titulo = "Arquitetura Limpa",
+                        Autor = "Robert Cecil Martin".PadLeft(100, '*')
+                    });
+
+                    db.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    transaction.Rollback();
+                }
+            }
+        }
+        static void ComportamentoPadrao()
+        {
+            CadastrarLivro();
+
+            using (var db = new ApplicationContext())
+            {
+                var livro = db.Livros.FirstOrDefault(p => p.Id == 1);
+                livro.Autor = "Robert Cecil Martin";
+
+                db.Livros.Add(new Livro
+                {
+                    Titulo = "Arquitetura Limpa",
+                    Autor = "Robert Cecil Martin"
+                });
+
+                db.SaveChanges();
+            }
+        }
+
+        static void CadastrarLivro()
+        {
+            using (var db = new ApplicationContext())
+            {
                 db.Database.EnsureDeleted();
                 db.Database.EnsureCreated();
 
-                db.Funcoes.Add( new Funcao {
+                db.Livros.Add(new Livro
+                {
+                    Titulo = "Código Limpo",
+                    Autor = "Robert"
+                });
+
+                db.SaveChanges();
+            }
+        }
+
+        static void TesteInterceptacaoSavingChanges()
+        {
+            using (var db = new ApplicationContext())
+            {
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
+
+                db.Funcoes.Add(new Funcao
+                {
                     Descricao1 = "Teste Interceptor"
                 });
 
