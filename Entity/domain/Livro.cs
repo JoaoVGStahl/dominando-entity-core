@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Entity.domain
@@ -8,5 +9,6 @@ namespace Entity.domain
         public string Titulo { get; set; }
         [Column(TypeName = ("VARCHAR(50)"))]
         public string Autor { get; set; }
+        public DateTime CadastradoEm { get; set; }
     }
 }

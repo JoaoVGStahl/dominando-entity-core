@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Entity.Configurations;
 using Entity.domain;
+using Entity.Funcoes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
 
@@ -26,10 +29,9 @@ namespace Entity.Data
         public DbSet<Instrutor> Instrutores { get; set; }
         public DbSet<Aluno> Alunos { get; set; }
         public DbSet<Atributo> Atributos { get; set; }
-
         public DbSet<Funcao> Funcoes { get; set; }
-
         public DbSet<Livro> Livros { get; set; }
+
         public DbSet<Dictionary<string, object>> Configuracoes => Set<Dictionary<string, object>>("Configurações");
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -45,7 +47,7 @@ namespace Entity.Data
             /*
             .UseSqlServer(strConnection, p => p.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
             .UseSqlServer(strConnection)
-            
+
                 .UseSqlServer(
                     strConnection,
                         o => o
@@ -54,17 +56,17 @@ namespace Entity.Data
                             .EnableRetryOnFailure(5,TimeSpan.FromSeconds(10), null)) // ! Tentará 5 vezes durante com delay de 10 segundos
                 .LogTo(Console.WriteLine, LogLevel.Information)
                 .EnableSensitiveDataLogging();
-          
+
             .LogTo(Console.WriteLine,
             new[]{ CoreEventId.ContextInitialized,
             RelationalEventId.CommandExecuted},
             LogLevel.Information,
             DbContextLoggerOptions.LocalTime | DbContextLoggerOptions.SingleLine);
-            
+
             .LogTo(_writer.WriteLine, LogLevel.Information);
             .EnableDetailedErrors(); // ! Usado apenas em dubug, pois gera uma sobrecarga!
              */
-             
+
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -83,7 +85,6 @@ namespace Entity.Data
 
              ! Configuração Propriedade!
             modelBuilder.Entity<Departamento>().Property(p => p.Descricao).UseCollation("SQL_Latin1_General_CP1_CS_AS");
-            
 
              ? Por padrão é criado em int porem suporta apenas long, decimal, byte => limitação do banco de dados
              ? basicamento é um Identity, porem é mais flexivel
@@ -177,16 +178,53 @@ namespace Entity.Data
                         .HasColumnType("VARCHAR(100)")
                         .HasDefaultValueSql("'TESTE'");
                 });
+
+            // ? Utilizando Atributos
+            // MinhaFuncoes.RegistrarFuncoes(modelBuilder);
+
+            // ! Fluent API
+            modelBuilder
+                .HasDbFunction(_minhaFuncao)
+                .HasName("LEFT")
+                .IsBuiltIn();
+
+            modelBuilder
+                .HasDbFunction(_letrasMaiusculas)
+                .HasName("ConverterParaLetrasMaiusculas")
+                .HasSchema("dbo");
+
+            modelBuilder
+                .HasDbFunction(_dateDiff)
+                .HasName("DATEDIFF")
+                .HasTranslation(p =>
+                {
+                    var argumentos = p.ToList();
+                    var constante = (SqlConstantExpression)argumentos[0];
+                    argumentos[0] = new SqlFragmentExpression(constante.Value.ToString());
+
+                    return new SqlFunctionExpression("DATEDIFF", argumentos, false, new[] { false, false, false }, typeof(int), null);
+                })
+                .IsBuiltIn();
+
         }
+        private static MethodInfo _minhaFuncao = typeof(MinhasFuncoes).GetRuntimeMethod("Left", new[] { typeof(string), typeof(int) });
+
+        private static MethodInfo _letrasMaiusculas = typeof(MinhasFuncoes).GetRuntimeMethod(nameof(MinhasFuncoes.LetrasMaiusculas), new[] { typeof(string) });
+        private static MethodInfo _dateDiff = typeof(MinhasFuncoes).GetRuntimeMethod(nameof(MinhasFuncoes.DateDiff), new[] { typeof(string), typeof(DateTime), typeof(DateTime) });
 
         // ? Flush StreamWriter
         public override void Dispose()
         {
             base.Dispose();
             _writer.Dispose();
-
         }
 
-
+        /*
+        [DbFunction(name: "LEFT", IsBuiltIn = true)]
+        public static string Left(string value, int quantidade)
+        {
+            throw new NotImplementedException();
+        }
+        */
     }
 }
