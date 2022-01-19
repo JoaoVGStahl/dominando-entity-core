@@ -1,4 +1,6 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore;
+using src.Data;
 
 namespace EFCore
 {
@@ -21,11 +23,36 @@ namespace EFCore
         dotnet build 
 
         dotnet ef migrations add PrimeiraMigracao -p  .\src\EFCore.csproj 
+        dotnet ef migrations script PrimeiraMigracao -p  .\src\EFCore.csproj -o novoDiretorio
+        dotnet ef migrations add PrimeiraMigracao -p  .\src\EFCore.csproj -o novoDiretorio -i
+
+        dotnet ef database update -p .\src\EFCore.csproj -v
+        dotnet ef migrations add AdicionarTelefone -p .\src\EFCore.csproj 
+
+        dotnet ef database update PrimeiraMigracao -p .\src\EFCore.csproj -v
+
+        dotnet ef migrations remove -p .\src\EFCore.csproj
+
+        dotnet ef migrations list -p .\src\EFCore.csproj
         */
 
         static void Main(string[] args)
         {
-            
+            VerificarMigracoes();
+        }
+
+        static void VerificarMigracoes()
+        {
+            var db = new ApplicationContext();
+            // ! Muito Cuidado ao utilizar em produção!
+            // ! db.Database.Migrate();
+
+            var migracoes = db.Database.GetPendingMigrations();
+
+            foreach (var migracao in migracoes)
+            {
+                Console.WriteLine(migracao);
+            }
         }
     }
 }

@@ -18,6 +18,8 @@ namespace EFCore.Migrations
                 {
                     table.PrimaryKey("PK_Pessoas", x => x.Id);
                 });
+
+                migrationBuilder.Sql("SELECT 1");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
