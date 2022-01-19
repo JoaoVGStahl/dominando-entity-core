@@ -32,6 +32,7 @@ namespace EFCore.MultTenant
     ? Devo realmente adotar essa complexidade?
 
     ? UnitOfWork Definido como uma unica transação que pode envolver multiplas operações
+    ? Mantém os objetos afetados na memoria e posteriormente submete ao banco de dados
     */
     public class Startup
     {
