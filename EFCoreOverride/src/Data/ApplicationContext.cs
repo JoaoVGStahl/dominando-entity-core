@@ -16,9 +16,9 @@ namespace src.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder
-                .LogTo(Console.WriteLine)
+                //.LogTo(Console.WriteLine)
                 .UseSqlServer("Data Source=DESKTOP-LD0IN04\\DELLSERVER;Initial Catalog=PontoSys-Override;User Id=sa;Password=@jr120401;Pooling=True;Application Name=EFCore")
-                .ReplaceService<IQuerySqlGeneratorFactory, MySqlServerQueryGeneratorFactory>()
+                //.ReplaceService<IQuerySqlGeneratorFactory, MySqlServerQueryGeneratorFactory>()
                 .EnableSensitiveDataLogging();
         }
     }

@@ -24,7 +24,7 @@ namespace EFCore.Tips
             //NaoUnicode();
             //OperadoresAgregacao();
             //OperadoresAgregacaoNoAgrupamento();
-            ContadorDeEventos();
+            //ContadorDeEventos();
         }
 
         // dotnet counters monitor -p 8128 --counters Microsoft.EntityFrameworkCore

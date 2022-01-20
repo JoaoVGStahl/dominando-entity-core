@@ -11,6 +11,7 @@ namespace src
 {
     public class MySqlServerQuerySqlGenerator : SqlServerQuerySqlGenerator
     {
+        
         public MySqlServerQuerySqlGenerator(QuerySqlGeneratorDependencies dependencies) : base(dependencies)
         {
 

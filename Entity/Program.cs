@@ -22,7 +22,8 @@ namespace DominandoEntityCore
      ? UDF (User Definid Function) => São funções definidas pelo usuário
      ? AsNoTracking vs Tracking
      ? Resolução de Identidade
-     ? 
+     ? Migrations => Versionamento de Modelo de Dados
+     ? Dependencias Migrations => Microsoft.EntityFrameworkCore.Design | Microsoft.EntityFrameworkCore.Tools | EF Cli
     */
     class Program
     {
@@ -80,15 +81,13 @@ namespace DominandoEntityCore
             //ConsultaCustomizada();
             //ConsultaProjetadaERastrada();
             //Inserir_200_Departamentos_Com_1MB();
-            ConsultaProjetada2();
+            //ConsultaProjetada2();
         }
         static void ConsultaProjetada2()
         {
-
             using var db = new ApplicationContext();
             // ! 360 MB / 6s 790md
             // ! var departamentos = db.Departamentos.ToArray();
-
             // * 55 MB / 3s 165ms
             var departamentos = db.Departamentos.Select(p => p.Descricao).ToArray();
             var memoria = (System.Diagnostics.Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024) + " MB";
@@ -101,15 +100,12 @@ namespace DominandoEntityCore
             db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
             var random = new Random();
-
             db.Departamentos.AddRange(Enumerable.Range(1, 200).Select(p => new Departamento
             {
                 Descricao = "Departamento Teste",
                 Image = getBytes()
             }));
-
             db.SaveChanges();
-
             byte[] getBytes()
             {
                 var buffer = new byte[1024 * 1024];
@@ -126,9 +122,7 @@ namespace DominandoEntityCore
                 Departamento = p,
                 TotalFuncionario = p.Funcionarios.Count()
             }).ToList();
-
             departamentos[0].Departamento.Descricao = "Departamento Teste Atualizado";
-
             db.SaveChanges();
         }
         static void ConsultaProjetadaERastrada()
@@ -140,9 +134,7 @@ namespace DominandoEntityCore
                 Departamento = p,
                 TotalFuncionario = p.Funcionarios.Count()
             }).ToList();
-
             departamentos[0].Departamento.Descricao = "Departamento Teste Atualizado";
-
             db.SaveChanges();
         }
         static void ConsultaCustomizada()
