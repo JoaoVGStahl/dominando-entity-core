@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using src.Data;
 using src.Data.Repositories;
@@ -55,7 +56,7 @@ namespace EFCore.UowRepository.Controllers
             
         }
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Remove(int id)
+        public async Task<IActionResult> RemoveDepartamentoAsync(int id)
         {
             var departamento = await _uow.DepartamentoRepository.GetByIdAsync(id);
             _uow.DepartamentoRepository.Remove(departamento);
@@ -63,6 +64,19 @@ namespace EFCore.UowRepository.Controllers
             if (saved) return Ok(departamento);
 
             return BadRequest(departamento); 
+        }
+        // Departamento/Descricao=teste
+        [HttpGet()]
+        public async Task<IActionResult> ConsultaDepartamentoAsync([FromQuery] string descricao)
+        {
+            var departamentos = await _uow.DepartamentoRepository.GetDataAsync(
+                    p => p.Descricao.Contains(descricao),
+                    p => p.Include(c => c.Colaboradores),
+                    take: 2);
+            
+            if (departamentos != null) return Ok(departamentos);
+
+            return NotFound(departamentos); 
         }
     }
 }
