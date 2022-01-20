@@ -52,6 +52,7 @@ namespace EFCore.UowRepository.Controllers
             if (saved) return Ok(departamento);
 
             return BadRequest(departamento);
+            
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> Remove(int id)
@@ -61,7 +62,9 @@ namespace EFCore.UowRepository.Controllers
             var saved = _uow.commit();
             if (saved) return Ok(departamento);
 
-            return BadRequest(departamento);
+            return BadRequest(departamento); 
         }
     }
 }
+
+

@@ -7,7 +7,7 @@ namespace src.Data.Repositories
 {
     public class DepartamentoRepository : GenericRepository<Departamento>, IDepartamentoRepository
     {
-        // private readonly ApplicationContext _context;
+        //  private readonly ApplicationContext _context;
         // private readonly DbSet<Departamento> _dbset;
 
         public DepartamentoRepository(ApplicationContext context) : base(context)
